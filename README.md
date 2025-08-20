@@ -1,2 +1,0 @@
-# proofixai
-ProofixAI

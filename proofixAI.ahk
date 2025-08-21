@@ -353,7 +353,7 @@ CleanTextForLogging(text) {
 }
 
 ; Hide tooltip - Esc
-Esc:: ToolTip()
+~Esc:: ToolTip()
 
 ; Initialize
 InitializeLog()

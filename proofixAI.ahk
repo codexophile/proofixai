@@ -24,6 +24,8 @@ Source: https://www.reddit.com/r/AutoHotkey/comments/1ci2x6q/comment/l2hrijw/
 #SingleInstance Force
 #include JSON.ahk
 
+TraySetIcon "logo.ico"
+
 ; Global variables
 logFile := A_AppData . "\ProofixAI_log.txt"
 filePath := ".\geminiAPI.txt"

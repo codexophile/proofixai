@@ -46,9 +46,7 @@ ProofreadText(inputText, apikey) {
     inputText . "`""
   strUrl := "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=" apikey
 
-  ; Show thinking status at mouse position
-  MouseGetPos(&mouseX, &mouseY)
-  ToolTip("Thinking...", mouseX + 10, mouseY + 10)
+  ; Previously showed a non-blocking tooltip (Thinking...). Removed to avoid blocking with MsgBox.
 
   ; Log input
   LogSession(inputText, "")
@@ -65,9 +63,7 @@ ProofreadText(inputText, apikey) {
     }
 
     if (api.status != 200) {
-      MouseGetPos(&mouseX, &mouseY)
-      ToolTip("❌ Error occurred", mouseX + 10, mouseY + 10)
-      SetTimer(() => ToolTip(), -2000)
+      MsgBox("❌ Error occurred")
       return ""
     }
 
@@ -78,21 +74,17 @@ ProofreadText(inputText, apikey) {
     ; Log output
     LogSession(inputText, correctedText)
 
-    ; Show completion status
-    MouseGetPos(&mouseX, &mouseY)
+    ; Show completion status via MsgBox
     if (correctedText != inputText) {
-      ToolTip("Text corrected", mouseX + 10, mouseY + 10)
+      MsgBox("Text corrected")
     } else {
-      ToolTip("No changes needed", mouseX + 10, mouseY + 10)
+      MsgBox("No changes needed")
     }
-    SetTimer(() => ToolTip(), -1500)
 
     return correctedText
 
   } catch Error as e {
-    MouseGetPos(&mouseX, &mouseY)
-    ToolTip("❌ Connection failed", mouseX + 10, mouseY + 10)
-    SetTimer(() => ToolTip(), -2000)
+    MsgBox("❌ Connection failed")
     return ""
   }
 }
@@ -103,9 +95,6 @@ ProcessAndReplace(response, originalText) {
     ; Clean response
     cleanResponse := Trim(response, "[]`n`r `t")
     jsonObjects := SplitJSON(cleanResponse)
-
-    ; Get mouse position for tooltip
-    MouseGetPos(&mouseX, &mouseY)
 
     ; Step 1: Delete the selected text (cursor is now at the position where text was)
     Send("{Delete}")
@@ -123,8 +112,7 @@ ProcessAndReplace(response, originalText) {
             ; Simply append the new chunk at current cursor position
             SendText(newChunk)
 
-            ; Simple writing tooltip
-            ToolTip("Writing...", mouseX + 10, mouseY + 10)
+            ; Previously showed a non-blocking tooltip (Writing...). Removed to avoid blocking with MsgBox.
           }
         }
       } catch {
@@ -152,9 +140,7 @@ ProcessAndReplace(response, originalText) {
     return fullText
 
   } catch {
-    MouseGetPos(&mouseX, &mouseY)
-    ToolTip("Processing failed", mouseX + 10, mouseY + 10)
-    SetTimer(() => ToolTip(), -2000)
+    MsgBox("Processing failed")
     return ""
   }
 }
@@ -319,9 +305,7 @@ CleanTextForLogging(text) {
   Send("^c")
 
   if (!ClipWait(1)) {
-    MouseGetPos(&mouseX, &mouseY)
-    ToolTip("❌ No text selected", mouseX + 10, mouseY + 10)
-    SetTimer(() => ToolTip(), -1500)
+    MsgBox("❌ No text selected")
     return
   }
 
@@ -329,9 +313,7 @@ CleanTextForLogging(text) {
   A_Clipboard := oldClipboard
 
   if (selectedText == "" || StrLen(Trim(selectedText)) < 1) {
-    MouseGetPos(&mouseX, &mouseY)
-    ToolTip("❌ No text selected", mouseX + 10, mouseY + 10)
-    SetTimer(() => ToolTip(), -1500)
+    MsgBox("❌ No text selected")
     return
   }
 
@@ -348,19 +330,14 @@ CleanTextForLogging(text) {
   if (FileExist(logFile)) {
     Run("notepad.exe " . logFile)
   } else {
-    MouseGetPos(&mouseX, &mouseY)
-    ToolTip("📄 No log file yet", mouseX + 10, mouseY + 10)
-    SetTimer(() => ToolTip(), -1500)
+    MsgBox("📄 No log file yet")
   }
 }
 
-; Hide tooltip - Esc
-~Esc:: ToolTip()
+; Removed Esc tooltip-hiding hotkey (no tooltips used)
 
 ; Initialize
 InitializeLog()
 
 ; Simple startup message
-MouseGetPos(&mouseX, &mouseY)
-ToolTip("📝 ProofixAI is ready!`nSelect text and press Alt+P", mouseX + 10, mouseY + 10)
-SetTimer(() => ToolTip(), -4000)
+MsgBox("📝 ProofixAI is ready!`nSelect text and press Alt+P")

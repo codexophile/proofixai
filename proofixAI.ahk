@@ -26,6 +26,34 @@ Source: https://www.reddit.com/r/AutoHotkey/comments/1ci2x6q/comment/l2hrijw/
 
 TraySetIcon "logo.ico"
 
+; Toast notification class for non-blocking messages
+class Toast {
+  static Show(message, duration := 3000) {
+    ; Get mouse position for toast placement
+    MouseGetPos(&mouseX, &mouseY)
+
+    ; Create toast GUI
+    toastGui := Gui("+AlwaysOnTop -MaximizeBox -MinimizeBox +LastFound", "ProofixAI")
+    toastGui.MarginX := 15
+    toastGui.MarginY := 10
+    toastGui.BackColor := "0x2D2D30"
+
+    ; Add text control
+    textCtrl := toastGui.Add("Text", "c0xFFFFFF", message)
+    textCtrl.SetFont("s9", "Segoe UI")
+
+    ; Position and show the toast
+    toastGui.Show("x" . (mouseX + 15) . " y" . (mouseY + 15) . " AutoSize NoActivate")
+
+    ; Auto-hide after duration
+    if (duration > 0) {
+      SetTimer(() => toastGui.Destroy(), -duration)
+    }
+
+    return toastGui
+  }
+}
+
 ; Global variables
 logFile := A_AppData . "\ProofixAI_log.txt"
 filePath := ".\geminiAPI.txt"
@@ -46,7 +74,8 @@ ProofreadText(inputText, apikey) {
     inputText . "`""
   strUrl := "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=" apikey
 
-  ; Previously showed a non-blocking tooltip (Thinking...). Removed to avoid blocking with MsgBox.
+  ; Show thinking status
+  Toast.Show("🤔 Thinking...")
 
   ; Log input
   LogSession(inputText, "")
@@ -63,7 +92,7 @@ ProofreadText(inputText, apikey) {
     }
 
     if (api.status != 200) {
-      MsgBox("❌ Error occurred")
+      Toast.Show("❌ Error occurred", 4000)
       return ""
     }
 
@@ -74,17 +103,17 @@ ProofreadText(inputText, apikey) {
     ; Log output
     LogSession(inputText, correctedText)
 
-    ; Show completion status via MsgBox
+    ; Show completion status via Toast
     if (correctedText != inputText) {
-      MsgBox("Text corrected")
+      Toast.Show("✅ Text corrected", 2500)
     } else {
-      MsgBox("No changes needed")
+      Toast.Show("ℹ️ No changes needed", 2500)
     }
 
     return correctedText
 
   } catch Error as e {
-    MsgBox("❌ Connection failed")
+    Toast.Show("❌ Connection failed", 4000)
     return ""
   }
 }
@@ -112,7 +141,8 @@ ProcessAndReplace(response, originalText) {
             ; Simply append the new chunk at current cursor position
             SendText(newChunk)
 
-            ; Previously showed a non-blocking tooltip (Writing...). Removed to avoid blocking with MsgBox.
+            ; Show writing progress
+            Toast.Show("✍️ Writing...", 1500)
           }
         }
       } catch {
@@ -140,7 +170,7 @@ ProcessAndReplace(response, originalText) {
     return fullText
 
   } catch {
-    MsgBox("Processing failed")
+    Toast.Show("❌ Processing failed", 4000)
     return ""
   }
 }
@@ -305,7 +335,7 @@ CleanTextForLogging(text) {
   Send("^c")
 
   if (!ClipWait(1)) {
-    MsgBox("❌ No text selected")
+    Toast.Show("❌ No text selected", 3000)
     return
   }
 
@@ -313,7 +343,7 @@ CleanTextForLogging(text) {
   A_Clipboard := oldClipboard
 
   if (selectedText == "" || StrLen(Trim(selectedText)) < 1) {
-    MsgBox("❌ No text selected")
+    Toast.Show("❌ No text selected", 3000)
     return
   }
 
@@ -330,7 +360,7 @@ CleanTextForLogging(text) {
   if (FileExist(logFile)) {
     Run("notepad.exe " . logFile)
   } else {
-    MsgBox("📄 No log file yet")
+    Toast.Show("📄 No log file yet", 3000)
   }
 }
 
@@ -340,4 +370,4 @@ CleanTextForLogging(text) {
 InitializeLog()
 
 ; Simple startup message
-MsgBox("📝 ProofixAI is ready!`nSelect text and press Alt+P")
+Toast.Show("📝 ProofixAI is ready!`nSelect text and press Alt+P", 5000)
